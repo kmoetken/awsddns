@@ -34,10 +34,13 @@ def parse_args():
 
 def get_aws_record(client, domain, zoneid):
 
-    response = client.list_resource_record_sets(HostedZoneId=args.zoneid,
-                                                StartRecordName=args.domain,
-                                                StartRecordType='A'
-                                                )
+    try:
+        response = client.list_resource_record_sets(HostedZoneId=args.zoneid,
+                                                    StartRecordName=args.domain,
+                                                    StartRecordType='A'
+                                                   )
+    except:
+        return False, None
 
     record = [record for record in response['ResourceRecordSets'] if record['Name'].rstrip('.') == args.domain]
     
@@ -48,7 +51,8 @@ def get_aws_record(client, domain, zoneid):
 
 def update_route53(client, domain, zoneid, ttl, ip):
 
-    response = client.change_resource_record_sets(
+    try
+        response = client.change_resource_record_sets(
                 HostedZoneId=args.zoneid,
                 ChangeBatch={
                     'Comment': 'string',
@@ -69,6 +73,8 @@ def update_route53(client, domain, zoneid, ttl, ip):
                     ]
                 }
             )
+    except:
+        return False
 
     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
         return True
